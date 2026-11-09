@@ -1,4 +1,4 @@
-import { PixelRatio } from 'react-native';
+import { PixelRatio, Platform } from 'react-native';
 import env from '../config/env';
 
 /**
@@ -162,4 +162,55 @@ export function livepeerHlsCandidates(playbackId: string | null | undefined): st
 export function livepeerThumbnail(playbackId: string | null | undefined): string {
   if (!playbackId) return '';
   return `${LIVEPEER_HOSTS[0]}/hls/${playbackId}/thumbnail.jpg`;
+}
+
+/**
+ * Riftn's own live server. Streams started since October run here rather than
+ * on Livepeer, and a stream says which with `provider: 'mediamtx'`. The phone
+ * app's `libs/live-ingest.ts` is the reference and this follows it rule for
+ * rule.
+ */
+const MEDIAMTX_ORIGIN = 'https://live.dehub.io';
+
+export interface LiveSourceRef {
+  provider?: string | null;
+  playbackId?: string | null;
+  playbackUrl?: string | null;
+}
+
+export function isSelfHostedLive(stream: LiveSourceRef | null | undefined): boolean {
+  return stream?.provider === 'mediamtx';
+}
+
+/**
+ * Every HLS address a live stream can be watched on, best first.
+ *
+ * The self-hosted server forwards the broadcaster's Opus audio. Android TV and
+ * Fire TV decode it; Apple TV's AVPlayer cannot play Opus inside HLS at all,
+ * so tvOS asks for the `-aac` copy the server makes on demand (video
+ * untouched), and keeps the original as a fallback.
+ */
+export function liveHlsCandidates(stream: LiveSourceRef | null | undefined): string[] {
+  const id = stream?.playbackId;
+  if (!id) return stream?.playbackUrl ? [stream.playbackUrl] : [];
+  if (isSelfHostedLive(stream)) {
+    const opus = `${MEDIAMTX_ORIGIN}/${id}/index.m3u8`;
+    const aac = `${MEDIAMTX_ORIGIN}/${id}-aac/index.m3u8`;
+    return Platform.OS === 'ios' ? [aac, opus] : [opus, aac];
+  }
+  const urls = stream?.playbackUrl ? [stream.playbackUrl] : [];
+  return [...new Set([...urls, ...livepeerHlsCandidates(id)])];
+}
+
+/**
+ * Poster for a stream. The stored thumbnail first; Livepeer's live frame grab
+ * only for a Livepeer stream, because the self-hosted server renders none and
+ * an image pointed at a 404 is a grey box.
+ */
+export function liveThumbnail(
+  stream: (LiveSourceRef & { thumbnail?: string | null }) | null | undefined,
+): string {
+  if (stream?.thumbnail) return cdnPath(stream.thumbnail);
+  if (isSelfHostedLive(stream)) return '';
+  return livepeerThumbnail(stream?.playbackId);
 }

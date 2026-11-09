@@ -122,7 +122,7 @@ export function PairingPanel({ onPaired, autoFocus }: PairingPanelProps) {
             </Txt>
           </View>
           <Txt variant="body" color={colors.neutrals[300]}>
-            Open DeHub on your phone and go to
+            Open Riftn on your phone and go to
           </Txt>
           <Txt variant="card" color={colors.foreground}>
             Settings → Privacy → Sign in a TV
@@ -176,7 +176,7 @@ export function PairingPanel({ onPaired, autoFocus }: PairingPanelProps) {
             {phase === 'rejected'
               ? 'Declined on your phone'
               : phase === 'error'
-                ? 'Could not reach DeHub'
+                ? 'Could not reach Riftn'
                 : 'That code expired'}
           </Txt>
           <Focusable onPress={() => void begin()} scaleOnFocus={false} ring={false} borderRadius={radius.pill}>
@@ -225,7 +225,7 @@ const styles = StyleSheet.create({
     // Read across a room and typed into a different device. Wide tracking is
     // the cheapest thing that stops two characters being read as one.
     letterSpacing: s(6),
-    fontFamily: 'Exo_700Bold',
+    fontFamily: 'Manrope_700Bold',
   },
   subtle: {
     flexDirection: 'row',

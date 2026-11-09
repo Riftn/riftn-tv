@@ -64,9 +64,12 @@ export function PosterCard({
               />
             ) : (
               <View style={styles.placeholder}>
-                <Txt variant="meta" color={colors.dimForeground}>
-                  DEHUB
-                </Txt>
+                <Image
+                  source={require('../assets/riftn-mark.png')}
+                  style={styles.placeholderMark}
+                  contentFit="contain"
+                  tintColor={colors.dimForeground}
+                />
               </View>
             )}
 
@@ -109,6 +112,11 @@ const styles = StyleSheet.create({
     borderRadius: radius.md,
     overflow: 'hidden',
     backgroundColor: colors.neutrals[800],
+  },
+  placeholderMark: {
+    width: s(18),
+    height: s(24),
+    opacity: 0.6,
   },
   placeholder: {
     ...StyleSheet.absoluteFillObject,

@@ -47,3 +47,18 @@ export function timeAgo(iso: string | null | undefined): string {
   if (months < 12) return `${Math.floor(months)}mo ago`;
   return `${Math.floor(days / 365)}y ago`;
 }
+
+/** When a scheduled stream airs: "Today 8:00 PM", "Tomorrow 9:30 AM", "Sat 6:00 PM". */
+export function scheduleLabel(iso: string | null | undefined, now: Date = new Date()): string {
+  const at = new Date(iso || '');
+  if (!Number.isFinite(at.getTime())) return 'Soon';
+  if (at.getTime() <= now.getTime()) return 'Starting soon';
+  const h = at.getHours();
+  const time = `${h % 12 || 12}:${String(at.getMinutes()).padStart(2, '0')} ${h < 12 ? 'AM' : 'PM'}`;
+  const startOfDay = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+  const days = Math.round((startOfDay(at) - startOfDay(now)) / 86_400_000);
+  if (days === 0) return `Today ${time}`;
+  if (days === 1) return `Tomorrow ${time}`;
+  if (days < 7) return `${['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][at.getDay()]} ${time}`;
+  return `${at.getDate()} ${['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][at.getMonth()]}`;
+}

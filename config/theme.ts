@@ -1,7 +1,7 @@
 import { Dimensions } from 'react-native';
 
 /**
- * DeHub TV design tokens
+ * Riftn TV design tokens
  * ======================
  * The palette is the house monochrome system — black / white / zinc, no
  * coloured accents, hue reserved strictly for semantic state (live, error).
@@ -139,12 +139,12 @@ export const radius = {
  * where TV text stops being legible from a sofa.
  */
 export const type = {
-  hero: { fontSize: s(42), lineHeight: s(50), fontFamily: 'Exo_700Bold' },
-  title: { fontSize: s(28), lineHeight: s(36), fontFamily: 'Exo_600SemiBold' },
-  rail: { fontSize: s(21), lineHeight: s(27), fontFamily: 'Exo_600SemiBold' },
-  card: { fontSize: s(16), lineHeight: s(21), fontFamily: 'Exo_500Medium' },
-  body: { fontSize: s(17), lineHeight: s(25), fontFamily: 'Exo_400Regular' },
-  meta: { fontSize: s(14), lineHeight: s(19), fontFamily: 'Exo_400Regular' },
+  hero: { fontSize: s(42), lineHeight: s(50), fontFamily: 'Manrope_700Bold' },
+  title: { fontSize: s(28), lineHeight: s(36), fontFamily: 'Manrope_600SemiBold' },
+  rail: { fontSize: s(21), lineHeight: s(27), fontFamily: 'Manrope_600SemiBold' },
+  card: { fontSize: s(16), lineHeight: s(21), fontFamily: 'Manrope_500Medium' },
+  body: { fontSize: s(17), lineHeight: s(25), fontFamily: 'Manrope_400Regular' },
+  meta: { fontSize: s(14), lineHeight: s(19), fontFamily: 'Manrope_400Regular' },
 } as const;
 
 /**

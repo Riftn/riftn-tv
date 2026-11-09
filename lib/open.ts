@@ -1,8 +1,8 @@
 import type { NavigationProp } from '@react-navigation/native';
-import { videoUrl, cdnPath, livepeerHlsCandidates, livepeerThumbnail } from './media';
+import { videoUrl, cdnPath, liveHlsCandidates, liveThumbnail } from './media';
 import { compactNumber } from './format';
-import { creatorName, resolveViewCount, type FeedItem } from '../services/feed.service';
-import type { LiveStream } from '../services/live.service';
+import { creatorName, postTitle, resolveViewCount, type FeedItem } from '../services/feed.service';
+import type { LiveStream, LiveReplay } from '../services/live.service';
 import type { TVChannel } from '../services/liveTv.service';
 import type { RootStackParamList } from '../navigation/types';
 
@@ -13,8 +13,8 @@ type Nav = NavigationProp<RootStackParamList>;
  *
  * Each content type resolves its playable URL differently and each gets it
  * wrong differently — a feed post is a progressive MP4 derived from its
- * tokenId, a stream is HLS derived from a Livepeer playback id across two
- * hosts, and a channel already carries an absolute URL. Scattering that across
+ * tokenId, a stream is HLS on Riftn's own live server or on Livepeer
+ * depending on `provider`, a finished live is an MP4 recording, and a channel already carries an absolute URL. Scattering that across
  * six call sites is how a rail ends up navigating to a player with an empty
  * source, which renders as a black screen with no error.
  */
@@ -64,21 +64,37 @@ export function openCreatorFromItem(navigation: Nav, item: FeedItem) {
 }
 
 export function openStream(navigation: Nav, stream: LiveStream) {
-  const sources = stream.playbackUrl
-    ? [stream.playbackUrl, ...livepeerHlsCandidates(stream.playbackId)]
-    : livepeerHlsCandidates(stream.playbackId);
+  const sources = liveHlsCandidates(stream);
   if (!sources.length) return;
 
   navigation.navigate('Player', {
     kind: 'live',
     title: stream.title || 'Untitled stream',
     subtitle: stream.account?.displayName || stream.account?.username || undefined,
-    // De-duplicated: `playbackUrl` is usually byte-identical to the primary
-    // Livepeer candidate, and retrying the same dead URL twice just doubles the
-    // wait before the error shows.
-    sources: [...new Set(sources)],
-    poster: stream.thumbnail ? cdnPath(stream.thumbnail) : livepeerThumbnail(stream.playbackId),
-    durationSeconds: stream.duration,
+    sources,
+    poster: liveThumbnail(stream) || undefined,
+    streamId: stream._id,
+    tokenId: stream.tokenId,
+    creatorAddress: stream.account?.address ?? stream.address,
+    creatorName: stream.account?.displayName || stream.account?.username,
+  });
+}
+
+/** A finished live plays like any other video: the recording is an MP4. */
+export function openReplay(navigation: Nav, replay: LiveReplay) {
+  const { item, stream } = replay;
+  navigation.navigate('Player', {
+    kind: 'video',
+    title: postTitle(item, stream.title || 'Live replay'),
+    subtitle: `${creatorName(item)}  ·  Live replay`,
+    sources: [replay.url],
+    poster: liveThumbnail(stream) || (item.imageUrl ? cdnPath(item.imageUrl) : undefined),
+    durationSeconds: replay.durationSeconds,
+    tokenId: item.tokenId,
+    isLiked: item.isLiked,
+    isSaved: item.isSaved,
+    creatorAddress: item.minter ?? item.minterUser?.address,
+    creatorName: creatorName(item),
   });
 }
 

@@ -13,7 +13,7 @@ const log = createLogger('auth');
  *
  *   1. `supabase.auth.signInWithOtp({ email })` mails a six-digit code.
  *   2. `supabase.auth.verifyOtp` turns that code into a Supabase session.
- *   3. `POST web/auth/supabase` exchanges the Supabase access token for a DeHub
+ *   3. `POST web/auth/supabase` exchanges the Supabase access token for a Riftn
  *      token pair, resolving the account by `web3AuthMeta.verifierId`.
  *
  * Steps 1 and 2 are byte-for-byte what the phone app's primary email login
@@ -52,9 +52,9 @@ export class SignInError extends Error {
  * `shouldCreateUser: false` is the one line that differs from the phone app,
  * and it matters. Mobile is a signup surface, so it creates the identity if it
  * is missing. A television is not: signing up here would mint a brand-new
- * DeHub account with a wallet the TV cannot hold, and the person would end up
+ * Riftn account with a wallet the TV cannot hold, and the person would end up
  * with a second empty account and no idea why their videos were missing. An
- * unknown address is told to sign up on a phone or at dehub.io instead.
+ * unknown address is told to sign up on a phone or at riftn.com instead.
  */
 export async function sendEmailCode(email: string): Promise<void> {
   const { error } = await supabase.auth.signInWithOtp({
@@ -72,7 +72,7 @@ export async function sendEmailCode(email: string): Promise<void> {
   if (message.includes('signups not allowed') || message.includes('user not found')) {
     throw new SignInError(
       'NO_ACCOUNT',
-      'No DeHub account uses that email address yet.',
+      'No Riftn account uses that email address yet.',
     );
   }
   if (message.includes('rate') || message.includes('too many')) {
@@ -91,7 +91,7 @@ interface ExchangeResponse {
 }
 
 /**
- * Verify the code, exchange it for a DeHub session, and store the result.
+ * Verify the code, exchange it for a Riftn session, and store the result.
  *
  * The Supabase session is deliberately not persisted — it is used once, here,
  * and dropped. See `lib/session.ts` for why leaving one on a TV is a bad idea.
@@ -149,13 +149,13 @@ export function describeExchangeError(error: unknown): SignInError {
     if (code === 'WALLET_NOT_LINKED') {
       return new SignInError(
         'WALLET_NOT_LINKED',
-        'That email is not connected to your DeHub account yet.',
+        'That email is not connected to your Riftn account yet.',
       );
     }
     if (code === 'WALLET_LINK_AMBIGUOUS') {
       return new SignInError(
         'WALLET_LINK_AMBIGUOUS',
-        'That email is connected to more than one account. Sign in with your wallet on a phone or at dehub.io to sort it out.',
+        'That email is connected to more than one account. Sign in with your wallet on a phone or at riftn.com to sort it out.',
       );
     }
     if (code === 'ACCOUNT_BANNED') {
@@ -166,7 +166,7 @@ export function describeExchangeError(error: unknown): SignInError {
     }
   }
 
-  return new SignInError('NETWORK', 'Could not reach DeHub. Check the connection and try again.');
+  return new SignInError('NETWORK', 'Could not reach Riftn. Check the connection and try again.');
 }
 
 function safeParse(text: string): any {

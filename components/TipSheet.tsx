@@ -180,7 +180,7 @@ export function TipSheet({
             <Txt variant="title">Check your phone</Txt>
             <Txt variant="body" color={colors.neutrals[300]} style={styles.centredText}>
               Approve the {compactNumber(amount ?? 0)} DHB tip
-              {recipientName ? ` to ${recipientName}` : ''} in the DeHub app.
+              {recipientName ? ` to ${recipientName}` : ''} in the Riftn app.
             </Txt>
             {/* The exact path, not just "on your phone". The request expires in
                 five minutes, and a person hunting through settings for a screen

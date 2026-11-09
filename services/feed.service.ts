@@ -135,13 +135,20 @@ export function resolveViewCount(item: FeedItem): number {
   return typeof item.views === 'number' ? item.views : 0;
 }
 
+/** A post's title, or the fallback when it is missing or only whitespace
+ *  (some live posts are titled " "). */
+export function postTitle(item: Pick<FeedItem, 'name'>, fallback = 'Untitled'): string {
+  const name = typeof item.name === 'string' ? item.name.trim() : '';
+  return name || fallback;
+}
+
 export function creatorName(item: FeedItem): string {
   return (
     item.minterDisplayName ||
     item.minterUser?.displayName ||
     item.minterUsername ||
     item.minterUser?.username ||
-    'DeHub'
+    'Riftn'
   );
 }
 

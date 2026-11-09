@@ -80,7 +80,7 @@ describe('creatorName', () => {
   });
 
   it('never renders undefined', () => {
-    expect(creatorName(base)).toBe('DeHub');
+    expect(creatorName(base)).toBe('Riftn');
   });
 });
 

@@ -14,7 +14,11 @@ import {
   livepeerHls,
   livepeerHlsCandidates,
   livepeerThumbnail,
+  liveHlsCandidates,
+  liveThumbnail,
 } from '../lib/media';
+
+import { Platform } from 'react-native';
 
 const CDN = 'https://dehubcdn.ams3.cdn.digitaloceanspaces.com';
 
@@ -125,5 +129,34 @@ describe('livepeer', () => {
     expect(livepeerHls(null)).toBe('');
     expect(livepeerHlsCandidates(undefined)).toEqual([]);
     expect(livepeerThumbnail('')).toBe('');
+  });
+});
+
+describe('live sources', () => {
+  // Streams since October run on Riftn's own server. Treating them as
+  // Livepeer streams is what left every current live as a black screen.
+  it('plays a self-hosted stream from the Riftn live server, AAC first on Apple TV', () => {
+    const urls = liveHlsCandidates({ provider: 'mediamtx', playbackId: 'eb179cc9' });
+    const opus = 'https://live.dehub.io/eb179cc9/index.m3u8';
+    const aac = 'https://live.dehub.io/eb179cc9-aac/index.m3u8';
+    expect(urls).toEqual(Platform.OS === 'ios' ? [aac, opus] : [opus, aac]);
+  });
+
+  it('keeps Livepeer for older streams, with the stored URL first and no duplicates', () => {
+    const urls = liveHlsCandidates({
+      playbackId: 'abc123',
+      playbackUrl: 'https://livepeercdn.studio/hls/abc123/index.m3u8',
+    });
+    expect(urls).toEqual([
+      'https://livepeercdn.studio/hls/abc123/index.m3u8',
+      'https://livepeercdn.com/hls/abc123/index.m3u8',
+    ]);
+  });
+
+  it('never points a self-hosted stream at a Livepeer thumbnail', () => {
+    expect(liveThumbnail({ provider: 'mediamtx', playbackId: 'x' })).toBe('');
+    expect(liveThumbnail({ provider: 'mediamtx', playbackId: 'x', thumbnail: 'live/thumbnails/a.jpg' })).toBe(
+      `${CDN}/live/thumbnails/a.jpg`,
+    );
   });
 });

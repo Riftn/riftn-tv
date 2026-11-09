@@ -1,5 +1,5 @@
 import React, { useCallback, useRef, useState } from 'react';
-import { Animated, StyleSheet, View } from 'react-native';
+import { Animated, Image, StyleSheet, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Focusable } from './Focusable';
@@ -89,9 +89,21 @@ export function SideNav({ active, onSelect }: SideNavProps) {
 
       <TVFocusGuideView autoFocus style={styles.list}>
         <View style={styles.brand}>
-          <Txt variant="rail" color={colors.foreground}>
-            {expanded ? 'DeHub TV' : 'D'}
-          </Txt>
+          {expanded ? (
+            <Image
+              source={require('../assets/riftn-wordmark.png')}
+              style={styles.wordmark}
+              resizeMode="contain"
+              accessibilityLabel="Riftn TV"
+            />
+          ) : (
+            <Image
+              source={require('../assets/riftn-mark.png')}
+              style={styles.mark}
+              resizeMode="contain"
+              accessibilityLabel="Riftn TV"
+            />
+          )}
         </View>
 
         {NAV_ITEMS.map((item) => {
@@ -176,6 +188,17 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: OVERSCAN.y,
     left: OVERSCAN.x,
+  },
+  mark: {
+    // The glyph is taller than wide; this keeps it the height of a nav icon
+    // and optically centred over the icon column.
+    width: s(20),
+    height: s(26),
+    marginLeft: s(2),
+  },
+  wordmark: {
+    width: s(92),
+    height: s(27),
   },
   item: {
     flexDirection: 'row',

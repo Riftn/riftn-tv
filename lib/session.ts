@@ -5,7 +5,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
  *
  * Two properties of this design are deliberate and worth defending.
  *
- * **The TV never holds a wallet key.** DeHub's own account model is a
+ * **The TV never holds a wallet key.** Riftn's own account model is a
  * self-custody wallet whose key is encrypted at rest, and the phone and web
  * clients derive it on-device. A TV must not: it is a shared appliance in a
  * room the account holder does not always control, often signed in for years,
@@ -16,7 +16,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
  *
  * **The Supabase session is thrown away after the exchange.** It is used once,
  * to prove identity to our backend, and never stored. What persists is the
- * DeHub token pair, which is revocable from any other device via Settings →
+ * Riftn token pair, which is revocable from any other device via Settings →
  * Active sessions. A lingering Supabase session would be a second, unrevocable
  * way into the account sitting in a living room.
  *

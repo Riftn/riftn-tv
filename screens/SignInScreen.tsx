@@ -94,7 +94,7 @@ export function SignInScreen({ onDone }: { onDone?: () => void }) {
   return (
     <View style={styles.root}>
       <View style={styles.copy}>
-        <Txt variant="title">Sign in to DeHub</Txt>
+        <Txt variant="title">Sign in to Riftn</Txt>
         <Txt variant="body" color={colors.mutedForeground}>
           Signing in puts everything you have saved on the home screen, and
           carries your likes across from your phone.
@@ -198,7 +198,7 @@ export function SignInScreen({ onDone }: { onDone?: () => void }) {
  * The failure states, each with the one action that resolves it.
  *
  * `WALLET_NOT_LINKED` is the one that matters most and is the reason this is a
- * component rather than a line of red text: a wallet-first DeHub account has no
+ * component rather than a line of red text: a wallet-first Riftn account has no
  * email attached until someone attaches one, and there is no way to do that
  * from a TV. The instructions have to be precise enough to follow on a phone
  * while looking at the television.
@@ -214,7 +214,7 @@ function Problem({ error, appOrigin }: { error: SignInError; appOrigin: string }
           <Txt variant="card">Connect this email to your account first</Txt>
         </View>
         <Txt variant="meta" color={colors.mutedForeground}>
-          Your DeHub account is a wallet, and it needs an email attached before
+          Your Riftn account is a wallet, and it needs an email attached before
           another device can sign in with one. On your phone or computer:
         </Txt>
         <Txt variant="meta" color={colors.neutrals[200]} style={styles.steps}>
@@ -382,7 +382,7 @@ const styles = StyleSheet.create({
   input: {
     color: colors.foreground,
     fontSize: s(19),
-    fontFamily: 'Exo_400Regular',
+    fontFamily: 'Manrope_400Regular',
     paddingVertical: 0,
   },
   inputCode: {
@@ -390,7 +390,7 @@ const styles = StyleSheet.create({
     // wide tracking — it is the one string on this screen people check twice.
     fontSize: s(26),
     letterSpacing: s(6),
-    fontFamily: 'Exo_600SemiBold',
+    fontFamily: 'Manrope_600SemiBold',
   },
   action: {
     flexDirection: 'row',

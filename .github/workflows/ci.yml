@@ -59,3 +59,52 @@ jobs:
           grep -q 'android:banner=' android/app/src/main/AndroidManifest.xml
         env:
           EXPO_TV: '1'
+
+  # A real native build. The bundle and manifest checks above cannot see a
+  # native module that fails to compile against this React Native, and the
+  # first place that would otherwise surface is a cloud build hours later. It
+  # also leaves a sideloadable APK on every run (Actions -> this run ->
+  # Artifacts). That APK is signed with the debug key, so it installs on a TV
+  # that does not already have a store or EAS build; uninstall that one first.
+  apk:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      - run: npm ci
+
+      - name: Use the sample environment
+        run: cp .env.sample .env
+
+      - name: Prebuild the Android TV project
+        run: npx expo prebuild --platform android --no-install
+        env:
+          EXPO_TV: '1'
+
+      # TVs and streaming sticks are ARM; Fire TV sticks are still 32-bit.
+      # Leaving out the x86 ABIs roughly halves the native build time.
+      - name: Build the APK
+        working-directory: android
+        run: ./gradlew assembleRelease --no-daemon -PreactNativeArchitectures=armeabi-v7a,arm64-v8a
+        env:
+          EXPO_TV: '1'
+          NODE_ENV: production
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: riftn-tv-apk
+          path: android/app/build/outputs/apk/release/app-release.apk
+          retention-days: 14

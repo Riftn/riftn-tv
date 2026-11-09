@@ -37,6 +37,8 @@ export interface PlayerParams {
    * every engagement action is keyed on it. No tokenId, no Like button.
    */
   tokenId?: number | string;
+  /** Live only: the stream's id, which the chat overlay subscribes with. */
+  streamId?: string;
   /** Creator address and label, for the follow-through to their page. */
   creatorAddress?: string;
   creatorName?: string;

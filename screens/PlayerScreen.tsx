@@ -301,7 +301,7 @@ export function PlayerScreen() {
         style={StyleSheet.absoluteFill}
         contentFit="contain"
         nativeControls={false}
-        allowsFullscreen={false}
+        fullscreenOptions={{ enable: false }}
         allowsPictureInPicture={false}
       />
 
