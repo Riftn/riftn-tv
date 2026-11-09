@@ -189,7 +189,8 @@ export function SearchScreen() {
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: colors.background,
+    // Transparent: BrowseScreen paints the theme behind every section.
+    backgroundColor: 'transparent',
   },
   content: {
     paddingBottom: OVERSCAN.y + spacing.xxl,

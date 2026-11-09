@@ -37,11 +37,36 @@ export interface PlayerParams {
    * every engagement action is keyed on it. No tokenId, no Like button.
    */
   tokenId?: number | string;
-  /** Live only: the stream's id, which the chat overlay subscribes with. */
+  /** Live only: the stream's id. */
   streamId?: string;
+  /** The stream's chat room (`stream:<tokenId>`), for lives and their replays. */
+  chatRoom?: string;
+  /** Replays only: when the live started (ms), so chat replays in step. */
+  replayStartedAt?: number;
   /** Creator address and label, for the follow-through to their page. */
   creatorAddress?: string;
   creatorName?: string;
+}
+
+/** One clip in the Shorts player: everything it needs, no feed lookup. */
+export interface ShortClip {
+  tokenId: number | string;
+  title: string;
+  creatorName: string;
+  creatorAddress?: string;
+  creatorHandle?: string;
+  url: string;
+  poster?: string;
+  views: number;
+  isLiked?: boolean;
+  isSaved?: boolean;
+}
+
+export interface ShortsParams {
+  clips: ShortClip[];
+  index: number;
+  /** Feed page to load when the viewer reaches the end, if there is one. */
+  nextPage?: number;
 }
 
 export interface CreatorParams {
@@ -56,6 +81,7 @@ export type RootStackParamList = {
   Browse: undefined;
   Player: PlayerParams;
   Creator: CreatorParams;
+  Shorts: ShortsParams;
 };
 
 declare global {

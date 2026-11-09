@@ -3,8 +3,9 @@ import { videoUrl, cdnPath, liveHlsCandidates, liveThumbnail } from './media';
 import { compactNumber } from './format';
 import { creatorName, postTitle, resolveViewCount, type FeedItem } from '../services/feed.service';
 import type { LiveStream, LiveReplay } from '../services/live.service';
+import { chatRoomFor } from '../services/liveChat.service';
 import type { TVChannel } from '../services/liveTv.service';
-import type { RootStackParamList } from '../navigation/types';
+import type { RootStackParamList, ShortClip } from '../navigation/types';
 
 type Nav = NavigationProp<RootStackParamList>;
 
@@ -75,6 +76,7 @@ export function openStream(navigation: Nav, stream: LiveStream) {
     poster: liveThumbnail(stream) || undefined,
     streamId: stream._id,
     tokenId: stream.tokenId,
+    chatRoom: stream.tokenId != null ? chatRoomFor(stream.tokenId) : undefined,
     creatorAddress: stream.account?.address ?? stream.address,
     creatorName: stream.account?.displayName || stream.account?.username,
   });
@@ -91,6 +93,8 @@ export function openReplay(navigation: Nav, replay: LiveReplay) {
     poster: liveThumbnail(stream) || (item.imageUrl ? cdnPath(item.imageUrl) : undefined),
     durationSeconds: replay.durationSeconds,
     tokenId: item.tokenId,
+    chatRoom: item.tokenId != null ? chatRoomFor(item.tokenId) : undefined,
+    replayStartedAt: Date.parse(stream.startedAt || '') || undefined,
     isLiked: item.isLiked,
     isSaved: item.isSaved,
     creatorAddress: item.minter ?? item.minterUser?.address,
@@ -109,4 +113,40 @@ export function openChannel(navigation: Nav, channel: TVChannel) {
     poster: channel.logo ?? undefined,
     channelId: channel.id,
   });
+}
+
+/** A short as the Shorts player carries it, or null when it has no video. */
+export function toShortClip(item: FeedItem): ShortClip | null {
+  const url = item.videoUrl ? cdnPath(item.videoUrl) : videoUrl(item.tokenId);
+  if (!url || item.tokenId == null) return null;
+  return {
+    tokenId: item.tokenId,
+    title: postTitle(item, ''),
+    creatorName: creatorName(item),
+    creatorAddress: item.minter ?? item.minterUser?.address,
+    creatorHandle: item.minterUsername ?? item.minterUser?.username,
+    url,
+    poster: item.imageUrl ? cdnPath(item.imageUrl) : undefined,
+    views: resolveViewCount(item),
+    isLiked: item.isLiked,
+    isSaved: item.isSaved,
+  };
+}
+
+/**
+ * Shorts open in their own vertical player, not the film player: up and down
+ * on the remote move between clips, like a swipe on the phone, and a clip that
+ * ends rolls into the next.
+ */
+export function openShorts(navigation: Nav, items: FeedItem[], start: FeedItem, nextPage?: number) {
+  const clips: ShortClip[] = [];
+  let index = 0;
+  for (const item of items) {
+    const clip = toShortClip(item);
+    if (!clip) continue;
+    if (item === start) index = clips.length;
+    clips.push(clip);
+  }
+  if (!clips.length) return;
+  navigation.navigate('Shorts', { clips, index, nextPage });
 }

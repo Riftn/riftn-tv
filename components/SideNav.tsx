@@ -6,26 +6,32 @@ import { Focusable } from './Focusable';
 import { Txt } from './Txt';
 import { TVFocusGuideView } from '../lib/tv';
 import { useAuth } from '../contexts/AuthContext';
+import { useTvTheme } from '../contexts/ThemeContext';
+import { useFocusColors } from '../lib/useFocusColors';
+import { withAlpha, type ThemeIconKey } from '../config/themes';
 import { colors, radius, spacing, OVERSCAN, NAV_RAIL_WIDTH, s } from '../config/theme';
 
-export type NavKey = 'home' | 'videos' | 'live' | 'tv' | 'search' | 'account';
+export type NavKey = 'home' | 'videos' | 'live' | 'tv' | 'search' | 'themes' | 'account';
 
 export interface NavItem {
   key: NavKey;
   label: string;
   icon: keyof typeof Ionicons.glyphMap;
+  /** The theme's own drawing of this item, when the theme has one. */
+  themeIcon?: ThemeIconKey;
 }
 
 export const NAV_ITEMS: NavItem[] = [
-  { key: 'home', label: 'Home', icon: 'home' },
-  { key: 'videos', label: 'Videos', icon: 'film' },
-  { key: 'live', label: 'Live', icon: 'radio' },
-  { key: 'tv', label: 'Live TV', icon: 'tv' },
-  { key: 'search', label: 'Search', icon: 'search' },
+  { key: 'home', label: 'Home', icon: 'home', themeIcon: 'home' },
+  { key: 'videos', label: 'Videos', icon: 'film', themeIcon: 'videos' },
+  { key: 'live', label: 'Live', icon: 'radio', themeIcon: 'live' },
+  { key: 'tv', label: 'Live TV', icon: 'tv', themeIcon: 'tv' },
+  { key: 'search', label: 'Search', icon: 'search', themeIcon: 'search' },
+  { key: 'themes', label: 'Themes', icon: 'color-palette-outline', themeIcon: 'paint' },
   // Label is overridden with the signed-in name below — a nav that still says
   // "Sign in" after you have signed in is the most common way a TV app leaves
   // people unsure whether it worked.
-  { key: 'account', label: 'Sign in', icon: 'person-circle-outline' },
+  { key: 'account', label: 'Sign in', icon: 'person-circle-outline', themeIcon: 'profile' },
 ];
 
 /** How wide the rail grows when focus enters it. */
@@ -52,6 +58,8 @@ export interface SideNavProps {
  */
 export function SideNav({ active, onSelect }: SideNavProps) {
   const { user, isSignedIn } = useAuth();
+  const { theme } = useTvTheme();
+  const focus = useFocusColors();
   const [expanded, setExpanded] = useState(false);
   const width = useRef(new Animated.Value(NAV_RAIL_WIDTH)).current;
 
@@ -81,7 +89,7 @@ export function SideNav({ active, onSelect }: SideNavProps) {
   return (
     <Animated.View style={[styles.wrapper, { width }]} pointerEvents="box-none">
       <LinearGradient
-        colors={['rgba(1,3,5,0.98)', 'rgba(1,3,5,0.92)', 'rgba(1,3,5,0)']}
+        colors={[withAlpha(theme.page, 0.98), withAlpha(theme.page, 0.92), withAlpha(theme.page, 0)]}
         start={{ x: 0, y: 0.5 }}
         end={{ x: 1, y: 0.5 }}
         style={StyleSheet.absoluteFill}
@@ -122,26 +130,44 @@ export function SideNav({ active, onSelect }: SideNavProps) {
               ring={false}
               borderRadius={radius.pill}
             >
-              {(focused) => (
-                <View style={[styles.item, isActive && styles.itemActive, focused && styles.itemFocused]}>
-                  <Ionicons
-                    name={item.icon}
-                    size={s(24)}
-                    color={
-                      focused
-                        ? colors.controlFocusedForeground
-                        : isActive
-                          ? colors.foreground
-                          : colors.mutedForeground
-                    }
-                  />
+              {(focused) => {
+                const themed = item.themeIcon && theme.icons ? theme.icons[item.themeIcon] : null;
+                return (
+                <View
+                  style={[
+                    styles.item,
+                    isActive && { borderColor: focus.ring },
+                    focused && { backgroundColor: focus.fill, borderColor: focus.fill },
+                  ]}
+                >
+                  {themed ? (
+                    // The theme's own icon art, full colour. Dimmed when
+                    // neither focused nor active, as the glyphs are greyed.
+                    <Image
+                      source={themed}
+                      style={[styles.themeIcon, !focused && !isActive && styles.themeIconIdle]}
+                      resizeMode="contain"
+                    />
+                  ) : (
+                    <Ionicons
+                      name={item.icon}
+                      size={s(24)}
+                      color={
+                        focused
+                          ? focus.onFill
+                          : isActive
+                            ? colors.foreground
+                            : colors.mutedForeground
+                      }
+                    />
+                  )}
                   {expanded && (
                     <Txt
                       variant="card"
                       numberOfLines={1}
                       color={
                         focused
-                          ? colors.controlFocusedForeground
+                          ? focus.onFill
                           : isActive
                             ? colors.foreground
                             : colors.mutedForeground
@@ -155,7 +181,8 @@ export function SideNav({ active, onSelect }: SideNavProps) {
                       whole pill has nothing an overscanning panel can crop off
                       and leave meaningless. */}
                 </View>
-              )}
+                );
+              }}
             </Focusable>
           );
         })}
@@ -175,10 +202,14 @@ const styles = StyleSheet.create({
   list: {
     flex: 1,
     justifyContent: 'center',
+    // Below the brand mark, which is pinned to the top safe line. Seven items
+    // centred in the full height would run the first one into it.
+    paddingTop: OVERSCAN.y + s(44),
+    paddingBottom: OVERSCAN.y,
     // 34 + the item's own 14 puts the icon's left edge on the 48dp safe line.
     paddingLeft: s(34),
     paddingRight: spacing.md,
-    gap: spacing.sm,
+    gap: s(6),
   },
   brand: {
     height: s(52),
@@ -204,20 +235,21 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.md,
-    height: s(52),
+    height: s(48),
     paddingHorizontal: spacing.md,
     borderRadius: radius.pill,
     // Reserved so the active border does not resize the row when it appears.
     borderWidth: s(2),
     borderColor: 'transparent',
   },
-  itemActive: {
-    borderWidth: s(2),
-    borderColor: colors.borderFocused,
+  themeIcon: {
+    // A touch larger than the glyphs: the theme art is drawn with its own
+    // padding, so at 24 it reads smaller than the Ionicons beside it.
+    width: s(28),
+    height: s(28),
+    marginHorizontal: -s(2),
   },
-  itemFocused: {
-    backgroundColor: colors.controlFocused,
-    borderWidth: s(2),
-    borderColor: colors.borderFocused,
+  themeIconIdle: {
+    opacity: 0.7,
   },
 });

@@ -14,6 +14,7 @@ import { PosterCard } from '../components/PosterCard';
 import { Txt } from '../components/Txt';
 import { Focusable } from '../components/Focusable';
 import { Loading, EmptyState } from '../components/States';
+import { ThemeBackdrop } from '../components/ThemeBackdrop';
 import { getAccountInfo } from '../services/user.service';
 import { isFollowing, setFollowing, type FollowStatus } from '../services/engagement.service';
 import { getFeed, isPlayableOnTv, resolveViewCount } from '../services/feed.service';
@@ -82,6 +83,7 @@ export function CreatorScreen() {
 
   return (
     <View style={styles.root}>
+      <ThemeBackdrop />
       <Grid
         data={items}
         columns={COLUMNS}
@@ -213,7 +215,6 @@ function FollowButton({
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: colors.background,
     paddingTop: OVERSCAN.y,
     // No horizontal padding here. `Grid` pads its own content, and `useGrid`
     // budgets for exactly that one inset — padding the root as well made every

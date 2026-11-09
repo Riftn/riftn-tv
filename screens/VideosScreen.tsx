@@ -16,7 +16,7 @@ import {
   type FeedPostType,
 } from '../services/feed.service';
 import { posterUrl } from '../lib/media';
-import { openFeedItem } from '../lib/open';
+import { openFeedItem, openShorts } from '../lib/open';
 import { useGrid } from '../lib/useGrid';
 import { colors, spacing, OVERSCAN, STAGE_INSET } from '../config/theme';
 import type { RootStackParamList } from '../navigation/types';
@@ -116,7 +116,16 @@ export function VideosScreen() {
               views={resolveViewCount(item)}
               width={cellWidth}
               height={cellHeight}
-              onPress={() => openFeedItem(navigation, item)}
+              onPress={() =>
+                lane.postType === 'short'
+                  ? openShorts(
+                      navigation,
+                      items,
+                      item,
+                      query.hasNextPage ? (query.data?.pages.length ?? 1) + 1 : undefined,
+                    )
+                  : openFeedItem(navigation, item)
+              }
             />
           )}
         />
@@ -128,7 +137,8 @@ export function VideosScreen() {
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: colors.background,
+    // Transparent: BrowseScreen paints the theme behind every section.
+    backgroundColor: 'transparent',
   },
   header: {
     paddingTop: OVERSCAN.y,
