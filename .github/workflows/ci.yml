@@ -96,6 +96,18 @@ jobs:
 
       # TVs and streaming sticks are ARM; Fire TV sticks are still 32-bit.
       # Leaving out the x86 ABIs roughly halves the native build time.
+      # The Gradle wrapper downloads Gradle from GitHub releases, which
+      # intermittently answers 504. Fetch it with retries before the build.
+      - name: Fetch Gradle
+        working-directory: android
+        run: |
+          for i in 1 2 3 4 5; do
+            ./gradlew --version --no-daemon && exit 0
+            echo "Gradle download failed (attempt $i), retrying"
+            sleep $((i * 15))
+          done
+          exit 1
+
       - name: Build the APK
         working-directory: android
         run: ./gradlew assembleRelease --no-daemon -PreactNativeArchitectures=armeabi-v7a,arm64-v8a
