@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { BackHandler, StyleSheet, View } from 'react-native';
 import { SideNav, type NavKey } from '../components/SideNav';
+import { ThemeBackdrop } from '../components/ThemeBackdrop';
 import { NAV_RAIL_WIDTH } from '../config/theme';
 import { HomeScreen } from './HomeScreen';
 import { VideosScreen } from './VideosScreen';
@@ -8,7 +9,7 @@ import { LiveScreen } from './LiveScreen';
 import { TVScreen } from './TVScreen';
 import { SearchScreen } from './SearchScreen';
 import { AccountScreen } from './AccountScreen';
-import { colors } from '../config/theme';
+import { ThemesScreen } from './ThemesScreen';
 
 /**
  * The browse shell: persistent nav on the left, one section on the right.
@@ -42,6 +43,7 @@ export function BrowseScreen() {
 
   return (
     <View style={styles.root}>
+      <ThemeBackdrop />
       <SideNav active={section} onSelect={handleSelect} />
       <View style={styles.content}>
         {/*
@@ -55,6 +57,7 @@ export function BrowseScreen() {
         {section === 'live' && <LiveScreen key="live" />}
         {section === 'tv' && <TVScreen key="tv" />}
         {section === 'search' && <SearchScreen key="search" />}
+        {section === 'themes' && <ThemesScreen key="themes" />}
         {section === 'account' && <AccountScreen key="account" />}
       </View>
     </View>
@@ -64,7 +67,6 @@ export function BrowseScreen() {
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: colors.background,
   },
   content: {
     flex: 1,

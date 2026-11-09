@@ -16,12 +16,14 @@ import { Badge } from '../components/Badge';
 import { Focusable } from '../components/Focusable';
 import { ErrorState } from '../components/States';
 import { CommentsPanel } from '../components/CommentsPanel';
+import { LiveChatOverlay } from '../components/LiveChatOverlay';
 import { TipSheet } from '../components/TipSheet';
 import { useTVEventHandler } from '../lib/tv';
 import { duration as fmtDuration } from '../lib/format';
 import { reportBrokenChannel } from '../services/liveTv.service';
 import { react, toggleSave } from '../services/engagement.service';
 import { useAuth } from '../contexts/AuthContext';
+import { useFocusColors } from '../lib/useFocusColors';
 import { openCreator } from '../lib/open';
 import { resumePosition, saveResumePoint } from '../lib/resume';
 import { queryClient } from '../config/queryClient';
@@ -54,8 +56,19 @@ const SEEK_STEP_SECONDS = 10;
 export function PlayerScreen() {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const route = useRoute<RouteProp<RootStackParamList, 'Player'>>();
-  const { kind, title, subtitle, sources, poster, channelId, tokenId, creatorAddress, creatorName } =
-    route.params;
+  const {
+    kind,
+    title,
+    subtitle,
+    sources,
+    poster,
+    channelId,
+    tokenId,
+    creatorAddress,
+    creatorName,
+    chatRoom,
+    replayStartedAt,
+  } = route.params;
   const { isSignedIn } = useAuth();
 
   // Optimistic, and deliberately not reconciled against the server afterwards.
@@ -105,6 +118,10 @@ export function PlayerScreen() {
   const [exhausted, setExhausted] = useState(false);
   const [controlsVisible, setControlsVisible] = useState(true);
   const [commentsOpen, setCommentsOpen] = useState(false);
+  // On by default: a live without its chat is half the live. A replay plays
+  // its chat back too, but only when the start time is known to line it up.
+  const hasChat = !!chatRoom && (kind === 'live' || typeof replayStartedAt === 'number');
+  const [chatOn, setChatOn] = useState(true);
   const hideTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const isLive = kind === 'live' || kind === 'channel';
@@ -319,6 +336,16 @@ export function PlayerScreen() {
         <CommentsPanel tokenId={tokenId} visible={commentsOpen} />
       )}
 
+      {hasChat && !!chatRoom && (
+        <LiveChatOverlay
+          room={chatRoom}
+          visible={chatOn && !commentsOpen && !tipping}
+          replayStartedAt={kind === 'live' ? undefined : replayStartedAt}
+          positionSeconds={currentTime}
+          raised={controlsVisible}
+        />
+      )}
+
       {controlsVisible && (
         <>
           <LinearGradient
@@ -429,6 +456,17 @@ export function PlayerScreen() {
                 </>
               )}
 
+              {hasChat && (
+                <ControlButton
+                  icon={chatOn ? 'chatbox-ellipses' : 'chatbox-ellipses-outline'}
+                  label={chatOn ? 'Hide chat' : 'Show chat'}
+                  onPress={() => {
+                    setChatOn((v) => !v);
+                    showControls();
+                  }}
+                />
+              )}
+
               {/* Reading the room. Offered signed out too — the comments are
                   public, and a television is mostly a signed-out device. */}
               {tokenId !== undefined && (
@@ -491,6 +529,7 @@ function ControlButton({
    *  mid-press throws the ring somewhere else and the user loses their place. */
   busy?: boolean;
 }) {
+  const focus = useFocusColors();
   return (
     <Focusable
       onPress={onPress}
@@ -504,16 +543,12 @@ function ControlButton({
           style={[
             styles.control,
             primary && styles.controlPrimary,
-            focused && styles.controlFocused,
+            focused && { backgroundColor: focus.fill, borderColor: focus.fill },
             busy && styles.controlBusy,
           ]}
         >
-          <Ionicons
-            name={icon}
-            size={s(21)}
-            color={focused ? colors.controlFocusedForeground : colors.foreground}
-          />
-          <Txt variant="card" color={focused ? colors.controlFocusedForeground : colors.foreground}>
+          <Ionicons name={icon} size={s(21)} color={focused ? focus.onFill : colors.foreground} />
+          <Txt variant="card" color={focused ? focus.onFill : colors.foreground}>
             {label}
           </Txt>
         </View>
@@ -603,10 +638,6 @@ const styles = StyleSheet.create({
   controlPrimary: {
     minWidth: s(140),
     justifyContent: 'center',
-  },
-  controlFocused: {
-    backgroundColor: colors.controlFocused,
-    borderColor: colors.borderFocused,
   },
   controlBusy: {
     opacity: 0.55,

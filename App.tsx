@@ -13,6 +13,7 @@ import {
 } from '@expo-google-fonts/manrope';
 import { RootNavigator } from './navigation/RootNavigator';
 import { AuthProvider } from './contexts/AuthContext';
+import { ThemeProvider } from './contexts/ThemeContext';
 import { queryClient } from './config/queryClient';
 import { colors } from './config/theme';
 
@@ -59,10 +60,12 @@ export default function App() {
     <SafeAreaProvider>
       <QueryClientProvider client={queryClient}>
         <AuthProvider>
-          <View style={styles.root}>
-            <StatusBar hidden />
-            <RootNavigator />
-          </View>
+          <ThemeProvider>
+            <View style={styles.root}>
+              <StatusBar hidden />
+              <RootNavigator />
+            </View>
+          </ThemeProvider>
         </AuthProvider>
       </QueryClientProvider>
     </SafeAreaProvider>

@@ -7,6 +7,7 @@ import {
   type ViewStyle,
 } from 'react-native';
 import { colors, radius, FOCUS_SCALE, s } from '../config/theme';
+import { useFocusColors } from '../lib/useFocusColors';
 
 export interface FocusableProps {
   children: React.ReactNode | ((focused: boolean) => React.ReactNode);
@@ -58,6 +59,7 @@ export function Focusable({
   testID,
 }: FocusableProps) {
   const [focused, setFocused] = useState(false);
+  const focusColors = useFocusColors();
   const anim = useRef(new Animated.Value(0)).current;
 
   const animateTo = useCallback(
@@ -103,7 +105,9 @@ export function Focusable({
           styles.inner,
           { borderRadius },
           scaleStyle,
-          ring && focused ? [styles.ring, { borderRadius: borderRadius + s(2) }] : styles.ringIdle,
+          ring && focused
+            ? [styles.ring, { borderRadius: borderRadius + s(2), borderColor: focusColors.ring }]
+            : styles.ringIdle,
         ]}
       >
         {typeof children === 'function' ? children(focused) : children}

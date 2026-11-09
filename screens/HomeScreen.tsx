@@ -19,7 +19,7 @@ import {
 import { getStreamBuckets } from '../services/live.service';
 import { getChannelsByCountry } from '../services/liveTv.service';
 import { cdnPath, posterUrl, liveThumbnail } from '../lib/media';
-import { openFeedItem, openStream, openChannel, openReplay } from '../lib/open';
+import { openFeedItem, openStream, openChannel, openReplay, openShorts } from '../lib/open';
 import { timeAgo, duration } from '../lib/format';
 import { useResumeShelf } from '../lib/useResumeShelf';
 import { useAuth } from '../contexts/AuthContext';
@@ -271,7 +271,7 @@ export function HomeScreen() {
               subtitle={creatorName(item)}
               views={resolveViewCount(item)}
               width={POSTER_WIDTH}
-              onPress={() => openFeedItem(navigation, item)}
+              onPress={() => openShorts(navigation, clipItems, item, 2)}
               onFocus={() => api.focusIndex(index)}
             />
           )}
@@ -323,7 +323,8 @@ export function HomeScreen() {
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: colors.background,
+    // Transparent: BrowseScreen paints the theme behind every section.
+    backgroundColor: 'transparent',
   },
   content: {
     paddingBottom: OVERSCAN.y + spacing.xxl,

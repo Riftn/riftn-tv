@@ -4,22 +4,13 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { BrowseScreen } from '../screens/BrowseScreen';
 import { PlayerScreen } from '../screens/PlayerScreen';
 import { CreatorScreen } from '../screens/CreatorScreen';
+import { ShortsScreen } from '../screens/ShortsScreen';
 import { colors } from '../config/theme';
+import { useTvTheme } from '../contexts/ThemeContext';
 import type { RootStackParamList } from './types';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
-const navTheme: Theme = {
-  ...DarkTheme,
-  colors: {
-    ...DarkTheme.colors,
-    background: colors.background,
-    card: colors.background,
-    text: colors.foreground,
-    border: colors.border,
-    primary: colors.foreground,
-  },
-};
 
 /**
  * Two screens, deliberately.
@@ -32,6 +23,21 @@ const navTheme: Theme = {
  * the home screen has lost their place entirely.
  */
 export function RootNavigator() {
+  const { theme } = useTvTheme();
+  const navTheme = React.useMemo<Theme>(
+    () => ({
+      ...DarkTheme,
+      colors: {
+        ...DarkTheme.colors,
+        background: theme.page,
+        card: theme.page,
+        text: colors.foreground,
+        border: colors.border,
+        primary: colors.foreground,
+      },
+    }),
+    [theme.page],
+  );
   return (
     <NavigationContainer theme={navTheme}>
       <Stack.Navigator
@@ -40,7 +46,7 @@ export function RootNavigator() {
           // There is no edge-swipe on a remote, and the default slide costs a
           // frame drop on the low-powered chips these boxes ship with.
           animation: 'fade',
-          contentStyle: { backgroundColor: colors.background },
+          contentStyle: { backgroundColor: theme.page },
         }}
       >
         <Stack.Screen name="Browse" component={BrowseScreen} />
@@ -50,6 +56,11 @@ export function RootNavigator() {
           options={{ contentStyle: { backgroundColor: '#000' } }}
         />
         <Stack.Screen name="Creator" component={CreatorScreen} />
+        <Stack.Screen
+          name="Shorts"
+          component={ShortsScreen}
+          options={{ contentStyle: { backgroundColor: '#000' } }}
+        />
       </Stack.Navigator>
     </NavigationContainer>
   );

@@ -2,6 +2,7 @@ import React, { useCallback, useRef } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { Focusable } from './Focusable';
 import { Txt } from './Txt';
+import { useFocusColors } from '../lib/useFocusColors';
 import { colors, radius, spacing, STAGE_INSET, s } from '../config/theme';
 
 export interface Pill {
@@ -31,6 +32,7 @@ export interface PillRowProps {
  */
 export function PillRow({ pills, activeId, onSelect, autoFocusFirst, inset = true }: PillRowProps) {
   const scrollRef = useRef<ScrollView>(null);
+  const focus = useFocusColors();
   const offsets = useRef<number[]>([]);
 
   const focusIndex = useCallback((index: number) => {
@@ -71,8 +73,8 @@ export function PillRow({ pills, activeId, onSelect, autoFocusFirst, inset = tru
                 <View
                   style={[
                     styles.pill,
-                    isActive && styles.pillActive,
-                    focused && styles.pillFocused,
+                    isActive && [styles.pillActive, { borderColor: focus.ring }],
+                    focused && { backgroundColor: focus.fill, borderColor: focus.fill },
                   ]}
                 >
                   <Txt
@@ -80,7 +82,7 @@ export function PillRow({ pills, activeId, onSelect, autoFocusFirst, inset = tru
                     numberOfLines={1}
                     color={
                       focused
-                        ? colors.controlFocusedForeground
+                        ? focus.onFill
                         : isActive
                           ? colors.foreground
                           : colors.mutedForeground
@@ -91,7 +93,7 @@ export function PillRow({ pills, activeId, onSelect, autoFocusFirst, inset = tru
                   {!!pill.note && (
                     <Txt
                       variant="meta"
-                      color={focused ? colors.controlFocusedForeground : colors.dimForeground}
+                      color={focused ? focus.onFill : colors.dimForeground}
                     >
                       {pill.note}
                     </Txt>
@@ -126,10 +128,6 @@ const styles = StyleSheet.create({
   pillActive: {
     // Selected state is a white edge and white text, per the house system —
     // never a fill colour.
-    borderColor: colors.borderFocused,
-  },
-  pillFocused: {
-    backgroundColor: colors.controlFocused,
     borderColor: colors.borderFocused,
   },
 });

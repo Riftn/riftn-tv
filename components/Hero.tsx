@@ -4,6 +4,9 @@ import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Focusable } from './Focusable';
 import { Txt } from './Txt';
+import { useFocusColors } from '../lib/useFocusColors';
+import { useTvTheme } from '../contexts/ThemeContext';
+import { withAlpha } from '../config/themes';
 import { Badge } from './Badge';
 import { colors, radius, spacing, STAGE_INSET, s } from '../config/theme';
 import { compactNumber } from '../lib/format';
@@ -49,12 +52,25 @@ export function Hero({
   actions,
 }: HeroProps) {
   const { height } = useWindowDimensions();
+  const { theme } = useTvTheme();
+  const focus = useFocusColors();
   // Just over half the panel. Tall enough to feel like a masthead, short enough
   // that the first rail peeks in underneath and signals that the page scrolls.
   const heroHeight = Math.round(height * 0.56);
 
   return (
-    <View style={[styles.wrapper, { height: heroHeight }]}>
+    <View style={[styles.wrapper, { height: heroHeight, backgroundColor: theme.page }]}>
+      {/* On a themed TV the page below the masthead is the theme's scene, a
+          little lighter than the solid page colour the masthead fades into.
+          This tail carries the fade on past the bottom edge so the two meet
+          without a line. Rails render after the hero and paint over it. */}
+      {!!theme.backdrop && (
+        <LinearGradient
+          colors={[theme.page, withAlpha(theme.page, 0)]}
+          style={styles.tail}
+          pointerEvents="none"
+        />
+      )}
       {!!imageUrl && (
         <Image
           source={{ uri: imageUrl }}
@@ -66,13 +82,13 @@ export function Hero({
       )}
 
       <LinearGradient
-        colors={['rgba(1,3,5,0.95)', 'rgba(1,3,5,0.55)', 'rgba(1,3,5,0.05)']}
+        colors={[withAlpha(theme.page, 0.95), withAlpha(theme.page, 0.55), withAlpha(theme.page, 0.05)]}
         start={{ x: 0, y: 0.5 }}
         end={{ x: 1, y: 0.5 }}
         style={StyleSheet.absoluteFill}
       />
       <LinearGradient
-        colors={['transparent', 'rgba(1,3,5,0.65)', colors.background]}
+        colors={[withAlpha(theme.page, 0), withAlpha(theme.page, 0.65), theme.page]}
         locations={[0.35, 0.78, 1]}
         style={StyleSheet.absoluteFill}
       />
@@ -111,10 +127,10 @@ export function Hero({
               borderRadius={radius.pill}
             >
               {(focused) => (
-                <View style={[styles.button, focused && styles.buttonFocused]}>
+                <View style={[styles.button, focused && { backgroundColor: focus.fill, borderColor: focus.fill }]}>
                   <Txt
                     variant="card"
-                    color={focused ? colors.controlFocusedForeground : colors.foreground}
+                    color={focused ? focus.onFill : colors.foreground}
                   >
                     {action.label}
                   </Txt>
@@ -132,6 +148,13 @@ const styles = StyleSheet.create({
   wrapper: {
     width: '100%',
     backgroundColor: colors.neutrals[900],
+  },
+  tail: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    top: '100%',
+    height: s(160),
   },
   content: {
     position: 'absolute',
@@ -163,9 +186,5 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
     minWidth: s(150),
     alignItems: 'center',
-  },
-  buttonFocused: {
-    backgroundColor: colors.controlFocused,
-    borderColor: colors.borderFocused,
   },
 });

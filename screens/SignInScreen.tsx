@@ -333,7 +333,8 @@ const styles = StyleSheet.create({
   root: {
     flex: 1,
     flexDirection: 'row',
-    backgroundColor: colors.background,
+    // Transparent: BrowseScreen paints the theme behind every section.
+    backgroundColor: 'transparent',
     paddingTop: OVERSCAN.y,
     paddingBottom: OVERSCAN.y,
     paddingLeft: STAGE_INSET,

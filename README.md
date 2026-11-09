@@ -14,11 +14,13 @@ none of it needs an account.
 | Surface | Source | Notes |
 | --- | --- | --- |
 | Trending / new / most-watched videos | `GET /feed` | ~780 videos |
-| Quick clips | `GET /feed?postType=short` | duration-filtered videos, ~610 |
+| Quick clips | `GET /feed?postType=short` | duration-filtered videos, ~610. Open in the vertical Shorts player: up/down on the remote = next/previous clip |
 | Live now + coming up | `GET /live?limit=50` | HLS from Riftn's live server (`live.dehub.io`), Livepeer for older streams |
 | Recent lives | `GET /feed?postType=live` | the saved recording (`stream.recording.url`, MP4) |
 | Live TV | Supabase `tv_channels_verified` | ~700 free IPTV channels |
 | Search | `GET /feed?search=` + channel search | videos and channels in one box |
+| Live chat | `GET /livechat/messages?roomId=stream:<tokenId>` | read-only overlay; polled every 3 s on a live, played back in step with the recording on a replay |
+| Themes | `config/themes.ts` | the site's 12 dark themes: page colour, accent, the site's theme icons, and a still of each theme's scene as the backdrop. Saved per TV |
 
 ## Why it is a separate app
 
@@ -210,6 +212,18 @@ Three consequences worth knowing:
 
 The TV sends `X-Device-Id` / `X-Device-Name` on every request, so it appears in
 Settings → Active sessions as "Riftn TV" and can be signed out remotely.
+
+## Themes
+
+Same twelve dark themes as riftn.com and the phone app, picked from the
+Themes item in the side nav and saved on the TV (not the account, and it works
+signed out). The site and the phone draw each theme's scene live; a TV box
+cannot spare the GPU next to 1080p video, so each scene is one 1280x720 still
+in `assets/themes/<theme>/backdrop.jpg`. They were rendered from the phone
+app's `assets/theme-backdrop/index.html` (the site's own background code) at
+1280x720 in headless Chromium; Osaka's scene streams a video the page cannot
+load offline, so its still is the site's theme preview. The nav icons are the
+site's `public/theme-icons/<theme>/*.webp` at 96 px.
 
 ## What a TV can and cannot do
 
