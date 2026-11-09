@@ -18,7 +18,7 @@ import {
 const env = {
   API_URL: API_URL || 'https://api.dehub.io/api',
   CDN_BASE_URL: CDN_BASE_URL || 'https://dehubcdn.ams3.cdn.digitaloceanspaces.com',
-  APP_ORIGIN: APP_ORIGIN || 'https://dehub.io',
+  APP_ORIGIN: APP_ORIGIN || 'https://riftn.com',
   SUPABASE_URL: SUPABASE_URL || 'https://aigxuutjaqsywioxjefr.supabase.co',
   /**
    * The anon/publishable key, with a real fallback rather than an empty string.

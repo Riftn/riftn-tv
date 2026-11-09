@@ -57,7 +57,7 @@ export function AccountScreen() {
         <Note
           icon="shield-checkmark-outline"
           title="Signed in somewhere you would rather not be?"
-          body={`Open ${host} or the DeHub app, go to Settings → Active sessions, and sign this television out remotely. It shows up there as “DeHub TV”.`}
+          body={`Open ${host} or the Riftn app, go to Settings → Active sessions, and sign this television out remotely. It shows up there as “Riftn TV”.`}
         />
       </View>
 

@@ -14,7 +14,7 @@ import * as Crypto from 'expo-crypto';
  * in the list or appears as a new row on every launch, and neither can be
  * revoked meaningfully.
  *
- * `X-Device-Name` is what the user reads in that list, so it says "DeHub TV"
+ * `X-Device-Name` is what the user reads in that list, so it says "Riftn TV"
  * plus the model rather than a UUID.
  */
 
@@ -42,7 +42,7 @@ export async function getDeviceId(): Promise<string> {
 
 export function getDeviceName(): string {
   const model = (Platform.constants as any)?.Model || (Platform.constants as any)?.Brand;
-  return model ? `DeHub TV (${model})` : 'DeHub TV';
+  return model ? `Riftn TV (${model})` : 'Riftn TV';
 }
 
 export async function getDeviceHeaders(): Promise<Record<string, string>> {

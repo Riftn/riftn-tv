@@ -8,7 +8,7 @@ const log = createLogger('pairing');
  * Signing in without typing.
  *
  * The television asks for a short code, shows it, and polls. The owner types
- * that code into DeHub on a phone that is already signed in, and the next poll
+ * that code into Riftn on a phone that is already signed in, and the next poll
  * comes back with a session.
  *
  * Both calls here are UNAUTHENTICATED, which is the point — this device has

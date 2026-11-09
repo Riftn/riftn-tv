@@ -6,11 +6,11 @@ import * as SplashScreen from 'expo-splash-screen';
 import * as SystemUI from 'expo-system-ui';
 import {
   useFonts,
-  Exo_400Regular,
-  Exo_500Medium,
-  Exo_600SemiBold,
-  Exo_700Bold,
-} from '@expo-google-fonts/exo';
+  Manrope_400Regular,
+  Manrope_500Medium,
+  Manrope_600SemiBold,
+  Manrope_700Bold,
+} from '@expo-google-fonts/manrope';
 import { RootNavigator } from './navigation/RootNavigator';
 import { AuthProvider } from './contexts/AuthContext';
 import { queryClient } from './config/queryClient';
@@ -19,7 +19,8 @@ import { colors } from './config/theme';
 void SplashScreen.preventAutoHideAsync();
 
 /**
- * Exo is the DeHub typeface and the app does not render before it has loaded.
+ * Manrope is the Riftn typeface (web and the phone app moved to it in
+ * November 2026) and the app does not render before it has loaded.
  *
  * On a phone a font swap is a flicker. On a TV it re-flows every rail's title
  * and every card's two-line clamp at once, half a second after the user is
@@ -28,10 +29,10 @@ void SplashScreen.preventAutoHideAsync();
  */
 export default function App() {
   const [fontsLoaded, fontError] = useFonts({
-    Exo_400Regular,
-    Exo_500Medium,
-    Exo_600SemiBold,
-    Exo_700Bold,
+    Manrope_400Regular,
+    Manrope_500Medium,
+    Manrope_600SemiBold,
+    Manrope_700Bold,
   });
 
   useEffect(() => {

@@ -1,4 +1,5 @@
 import { apiClient } from '../lib/api.client';
+import { getFeed, type FeedItem } from './feed.service';
 
 /**
  * Livestream reads.
@@ -52,11 +53,21 @@ export interface LiveStream {
   tokenId?: number;
   /** CDN-relative, e.g. `live/thumbnails/<id>.jpg`. */
   thumbnail?: string;
+  /** `'mediamtx'` for Riftn's own live server; absent or `'livepeer'` otherwise. */
+  provider?: string;
+  /** Present once a finished broadcast has been saved to the CDN. */
+  recording?: LiveRecording;
   createdAt?: string;
   startedAt?: string;
   scheduledFor?: string;
   account?: LiveAccount;
   [key: string]: any;
+}
+
+export interface LiveRecording {
+  status?: string;
+  url?: string;
+  durationSec?: number;
 }
 
 /** `PAUSED` is a host who stepped away mid-broadcast, not a stream that ended —
@@ -72,16 +83,49 @@ export function isReplayable(stream: LiveStream): boolean {
 }
 
 export async function getStreams(): Promise<LiveStream[]> {
+  // The route defaults to twenty and sorts live first, then scheduled, then
+  // recent; fifty is comfortably more than are ever on air at once.
   const res = await apiClient.get<LiveStream[] | { result?: LiveStream[] }>('/live', {
+    params: { limit: 50 },
     withAuth: false,
   });
   if (Array.isArray(res)) return res;
   return Array.isArray(res?.result) ? res.result : [];
 }
 
+/**
+ * A finished live, as a playable recording.
+ *
+ * Ended broadcasts drop off `/live` entirely; what remains of them is the live
+ * POST in the feed, whose `stream.recording` points at an MP4 the server saved
+ * to the CDN. Only those are worth a tile: a live post without a ready
+ * recording is a poster for something that can no longer be watched.
+ */
+export interface LiveReplay {
+  item: FeedItem;
+  stream: LiveStream;
+  url: string;
+  durationSeconds?: number;
+}
+
+export function replayOf(item: FeedItem): LiveReplay | null {
+  const stream = item.stream as LiveStream | undefined;
+  const rec = stream?.recording;
+  if (!stream || rec?.status !== 'ready' || !rec.url) return null;
+  if (item.streamInfo?.isPayPerView || item.streamInfo?.isLockContent) return null;
+  return { item, stream, url: rec.url, durationSeconds: rec.durationSec ?? stream.duration };
+}
+
+export async function getReplays(limit = 40): Promise<LiveReplay[]> {
+  const res = await getFeed({ postType: 'live', sortBy: 'createdAt', limit });
+  return res.result.map(replayOf).filter((r): r is LiveReplay => !!r);
+}
+
 export interface StreamBuckets {
   live: LiveStream[];
-  replay: LiveStream[];
+  /** Announced and not yet on air. Shown, not playable. */
+  upcoming: LiveStream[];
+  replay: LiveReplay[];
 }
 
 function newestFirst(a: LiveStream, b: LiveStream): number {
@@ -90,11 +134,28 @@ function newestFirst(a: LiveStream, b: LiveStream): number {
   return bt - at;
 }
 
+function soonestFirst(a: LiveStream, b: LiveStream): number {
+  return (Date.parse(a.scheduledFor || '') || 0) - (Date.parse(b.scheduledFor || '') || 0);
+}
+
 export async function getStreamBuckets(): Promise<StreamBuckets> {
-  const all = await getStreams();
+  // Replays failing must not take the live list down with them, and vice
+  // versa: a Live screen that can show either is better than an error.
+  const [streams, replays] = await Promise.allSettled([getStreams(), getReplays()]);
+  const all = streams.status === 'fulfilled' ? streams.value : [];
+  const replay = replays.status === 'fulfilled' ? replays.value : [];
+  if (streams.status === 'rejected' && replays.status === 'rejected') throw streams.reason;
+  const now = Date.now();
   return {
     live: all.filter(isLiveNow).sort(newestFirst),
-    replay: all.filter(isReplayable).sort(newestFirst),
+    upcoming: all
+      .filter(
+        (s) =>
+          s.status === StreamStatus.SCHEDULED &&
+          (Date.parse(s.scheduledFor || '') || 0) > now - 60 * 60 * 1000,
+      )
+      .sort(soonestFirst),
+    replay,
   };
 }
 

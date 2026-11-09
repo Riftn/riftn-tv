@@ -5,7 +5,7 @@ import env from '../config/env';
 /**
  * Anonymous Supabase client.
  *
- * Two DeHub surfaces live in Postgres rather than behind the NestJS API — the
+ * Two Riftn surfaces live in Postgres rather than behind the NestJS API — the
  * verified IPTV channel list (`tv_channels_verified`, 701 rows) and audio
  * stages (`audio_spaces`) — and both read fine with the publishable anon key,
  * verified against production.

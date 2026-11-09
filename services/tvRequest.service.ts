@@ -80,7 +80,7 @@ export async function requestTip(intent: TipIntent): Promise<TvRequest> {
       throw new TvRequestError(body?.message || 'That request was refused.', body?.code);
     }
     log.warn('requestTip failed', error);
-    throw new TvRequestError('Could not reach DeHub. Check the connection.');
+    throw new TvRequestError('Could not reach Riftn. Check the connection.');
   }
 }
 

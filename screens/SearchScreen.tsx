@@ -29,7 +29,7 @@ const MIN_QUERY_LENGTH = 2;
  * Search across videos and channels at once.
  *
  * One box, two result rails, no mode switch. A TV user who types "bbc" cannot
- * be expected to have first decided whether BBC is a DeHub creator or a
+ * be expected to have first decided whether BBC is a Riftn creator or a
  * broadcast channel, and making them pick a tab before searching means they
  * find nothing and conclude the catalogue is empty.
  *
@@ -107,7 +107,7 @@ export function SearchScreen() {
         <EmptyState
           icon="search-outline"
           title="What are you looking for?"
-          detail="Type at least two characters to search DeHub videos and live TV channels."
+          detail="Type at least two characters to search Riftn videos and live TV channels."
         />
       )}
 
@@ -221,7 +221,7 @@ const styles = StyleSheet.create({
     flex: 1,
     color: colors.foreground,
     fontSize: s(19),
-    fontFamily: 'Exo_400Regular',
+    fontFamily: 'Manrope_400Regular',
     // Android vertically centres poorly in a fixed-height row without this.
     paddingVertical: 0,
   },

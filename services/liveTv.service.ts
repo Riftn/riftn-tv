@@ -5,7 +5,7 @@ import { createLogger } from '../lib/logger';
  * Live TV channels.
  *
  * This is the surface with the strongest claim to a television: 700-odd free
- * IPTV channels that DeHub already curates for web and the phone app, which on
+ * IPTV channels that Riftn already curates for web and the phone app, which on
  * a phone is a novelty and on a TV is the thing the device is for.
  *
  * Ported from the phone app's `services/liveTv.service.ts`, which is itself a

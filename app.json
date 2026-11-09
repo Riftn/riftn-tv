@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "DeHub TV",
+    "name": "Riftn TV",
     "slug": "dehubtv",
     "owner": "dehubapp",
     "scheme": "dehubtv",
@@ -58,7 +58,8 @@
         }
       ],
       "expo-video",
-      "expo-font"
+      "expo-font",
+      "expo-image"
     ],
     "extra": {
       "eas": {

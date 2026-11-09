@@ -12,13 +12,14 @@ import {
   getSavedPosts,
   isPlayableOnTv,
   creatorName,
+  postTitle,
   resolveViewCount,
   type FeedItem,
 } from '../services/feed.service';
 import { getStreamBuckets } from '../services/live.service';
 import { getChannelsByCountry } from '../services/liveTv.service';
-import { cdnPath, posterUrl, livepeerThumbnail } from '../lib/media';
-import { openFeedItem, openStream, openChannel } from '../lib/open';
+import { cdnPath, posterUrl, liveThumbnail } from '../lib/media';
+import { openFeedItem, openStream, openChannel, openReplay } from '../lib/open';
 import { timeAgo, duration } from '../lib/format';
 import { useResumeShelf } from '../lib/useResumeShelf';
 import { useAuth } from '../contexts/AuthContext';
@@ -100,7 +101,7 @@ export function HomeScreen() {
   const liveNow = streams.data?.live ?? [];
   const replays = streams.data?.replay ?? [];
 
-  if (trending.isLoading && fresh.isLoading) return <Loading label="Loading DeHub" />;
+  if (trending.isLoading && fresh.isLoading) return <Loading label="Loading Riftn" />;
 
   if (trending.isError && fresh.isError) {
     return (
@@ -127,7 +128,7 @@ export function HomeScreen() {
     >
       {featured && (
         <Hero
-          title={featured.name || 'DeHub'}
+          title={featured.name || 'Riftn'}
           description={featured.description}
           imageUrl={posterUrl(featured, 1280)}
           creator={creatorName(featured)}
@@ -201,11 +202,7 @@ export function HomeScreen() {
             renderItem={(stream, index, api) => (
               <PosterCard
                 title={stream.title || 'Untitled stream'}
-                imageUrl={
-                  stream.thumbnail
-                    ? cdnPath(stream.thumbnail)
-                    : livepeerThumbnail(stream.playbackId)
-                }
+                imageUrl={liveThumbnail(stream)}
                 subtitle={stream.account?.displayName || stream.account?.username}
                 views={stream.totalViews}
                 live
@@ -240,7 +237,7 @@ export function HomeScreen() {
         />
 
         <Rail
-          title="New on DeHub"
+          title="New on Riftn"
           data={freshItems}
           itemWidth={POSTER_WIDTH}
           itemHeight={cardSize.wide.height}
@@ -297,26 +294,23 @@ export function HomeScreen() {
         />
 
         <Rail
-          title="Past streams"
+          title="Recent lives"
           data={replays}
           itemWidth={POSTER_WIDTH}
           itemHeight={cardSize.wide.height}
-          keyExtractor={(s) => s._id}
-          renderItem={(stream, index, api) => (
+          keyExtractor={(r) => r.stream._id}
+          renderItem={(replay, index, api) => (
             <PosterCard
-              title={stream.title || 'Untitled stream'}
+              title={postTitle(replay.item, replay.stream.title || 'Live replay')}
               imageUrl={
-                stream.thumbnail ? cdnPath(stream.thumbnail) : livepeerThumbnail(stream.playbackId)
+                liveThumbnail(replay.stream) ||
+                (replay.item.imageUrl ? cdnPath(replay.item.imageUrl) : '')
               }
-              durationSeconds={stream.duration}
-              subtitle={
-                stream.account?.displayName ||
-                stream.account?.username ||
-                timeAgo(stream.startedAt || stream.createdAt)
-              }
-              views={stream.totalViews}
+              durationSeconds={replay.durationSeconds}
+              subtitle={`${creatorName(replay.item)} · ${timeAgo(replay.stream.startedAt || replay.item.createdAt)}`}
+              views={replay.stream.totalViews ?? resolveViewCount(replay.item)}
               width={POSTER_WIDTH}
-              onPress={() => openStream(navigation, stream)}
+              onPress={() => openReplay(navigation, replay)}
               onFocus={() => api.focusIndex(index)}
             />
           )}

@@ -7,25 +7,29 @@ import { PosterCard } from '../components/PosterCard';
 import { Txt } from '../components/Txt';
 import { Badge } from '../components/Badge';
 import { Loading, ErrorState, EmptyState } from '../components/States';
-import { getStreamBuckets } from '../services/live.service';
-import { cdnPath, livepeerThumbnail } from '../lib/media';
-import { openStream } from '../lib/open';
+import { getStreamBuckets, type LiveStream, type LiveReplay } from '../services/live.service';
+import { cdnPath, liveThumbnail } from '../lib/media';
+import { openStream, openReplay } from '../lib/open';
+import { creatorName, postTitle, resolveViewCount } from '../services/feed.service';
 import { useGrid } from '../lib/useGrid';
-import { timeAgo } from '../lib/format';
+import { timeAgo, scheduleLabel } from '../lib/format';
 import { colors, spacing, OVERSCAN, STAGE_INSET } from '../config/theme';
 import type { RootStackParamList } from '../navigation/types';
 
 const COLUMNS = 4;
 
+type Tile =
+  | { kind: 'live'; key: string; stream: LiveStream }
+  | { kind: 'upcoming'; key: string; stream: LiveStream }
+  | { kind: 'replay'; key: string; replay: LiveReplay };
+
 /**
- * Livestreams — live now on top, everything finished underneath.
+ * Livestreams: live now first, then what is coming up, then recordings of
+ * lives that already happened.
  *
- * The empty case is the normal case and is designed for accordingly. Twenty
- * streams have ever been created on the platform and none were live when this
- * screen was written, so a "nobody is live" state that reads as deliberate
- * matters more here than the populated state does. It still shows the replays,
- * because a screen that says "nothing" while holding twenty watchable
- * recordings is just wrong.
+ * Nobody being live is the common case, so that state reads as deliberate and
+ * still offers the replays: a screen that says "nothing" while holding
+ * watchable recordings is just wrong.
  */
 export function LiveScreen() {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
@@ -45,14 +49,21 @@ export function LiveScreen() {
   }
 
   const live = query.data?.live ?? [];
+  const upcoming = query.data?.upcoming ?? [];
   const replay = query.data?.replay ?? [];
 
-  if (!live.length && !replay.length) {
+  const tiles: Tile[] = [
+    ...live.map((stream) => ({ kind: 'live' as const, key: `l${stream._id}`, stream })),
+    ...upcoming.map((stream) => ({ kind: 'upcoming' as const, key: `u${stream._id}`, stream })),
+    ...replay.map((r) => ({ kind: 'replay' as const, key: `r${r.stream._id}`, replay: r })),
+  ];
+
+  if (!tiles.length) {
     return (
       <EmptyState
         icon="radio-outline"
         title="No streams yet"
-        detail="When a DeHub creator goes live, their stream shows up here."
+        detail="When a Riftn creator goes live, their stream shows up here."
       />
     );
   }
@@ -66,36 +77,54 @@ export function LiveScreen() {
         </View>
         {!live.length && (
           <Txt variant="body" color={colors.mutedForeground}>
-            Nobody is live right now — here is what you missed.
+            {replay.length
+              ? 'Nobody is live right now. Catch up on recent lives below.'
+              : 'Nobody is live right now.'}
           </Txt>
         )}
       </View>
 
       <Grid
-        data={[...live, ...replay]}
+        data={tiles}
         columns={COLUMNS}
         itemWidth={cellWidth}
         itemHeight={cellHeight}
-        keyExtractor={(s) => s._id}
-        renderItem={(stream, _index, autoFocus) => {
-          const isLive = live.includes(stream);
+        keyExtractor={(t) => t.key}
+        renderItem={(tile, _index, autoFocus) => {
+          if (tile.kind === 'replay') {
+            const { item, stream } = tile.replay;
+            return (
+              <PosterCard
+                title={postTitle(item, stream.title || 'Live replay')}
+                imageUrl={liveThumbnail(stream) || (item.imageUrl ? cdnPath(item.imageUrl) : '')}
+                durationSeconds={tile.replay.durationSeconds}
+                subtitle={`${creatorName(item)} · ${timeAgo(stream.startedAt || item.createdAt)}`}
+                views={stream.totalViews ?? resolveViewCount(item)}
+                width={cellWidth}
+                height={cellHeight}
+                onPress={() => openReplay(navigation, tile.replay)}
+                autoFocus={autoFocus}
+              />
+            );
+          }
+          const { stream } = tile;
+          const isLive = tile.kind === 'live';
           return (
             <PosterCard
               title={stream.title || 'Untitled stream'}
-              imageUrl={
-                stream.thumbnail ? cdnPath(stream.thumbnail) : livepeerThumbnail(stream.playbackId)
-              }
-              durationSeconds={isLive ? undefined : stream.duration}
+              imageUrl={liveThumbnail(stream)}
               live={isLive}
               subtitle={
-                stream.account?.displayName ||
-                stream.account?.username ||
-                timeAgo(stream.startedAt || stream.createdAt)
+                isLive
+                  ? stream.account?.displayName || stream.account?.username
+                  : `${stream.account?.displayName || stream.account?.username || 'Coming up'} · ${scheduleLabel(stream.scheduledFor)}`
               }
-              views={stream.totalViews}
+              views={isLive ? stream.totalViews : undefined}
               width={cellWidth}
               height={cellHeight}
-              onPress={() => openStream(navigation, stream)}
+              // Scheduled streams have nothing to play yet; the tile is there
+              // so people know to come back, and pressing it does nothing.
+              onPress={isLive ? () => openStream(navigation, stream) : () => {}}
               // No filter row on this screen, so the first tile is where a
               // remote should land. Leaving it to Android's default picks
               // whatever is first in the view tree, which is not always this.
